@@ -1,0 +1,38 @@
+{
+  "name": "BookOrb",
+  "identifier": "app.bookorb.companion.source",
+  "subtitle": "Unofficial companion app for BookOrbit",
+  "description": "An unofficial iOS reader for a self-hosted BookOrbit server. Not affiliated with the BookOrbit project.",
+  "iconURL": "https://raw.githubusercontent.com/marczykm/bookorb-companion-reader-ios/main/CompanionReader/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+  "website": "https://github.com/marczykm/bookorb-companion-reader-ios",
+  "tintColor": "6750A4",
+  "apps": [
+    {
+      "name": "BookOrb: Unofficial Companion App",
+      "bundleIdentifier": "app.bookorb.companion.reader.ios",
+      "developerName": "marcin",
+      "subtitle": "Read and sync books from your BookOrbit server",
+      "localizedDescription": "An unofficial iOS companion reader for a self-hosted BookOrbit server. Library and Browse, an EPUB reader with highlights and progress sync, a reading companion, offline reading and Home Screen widgets.\n\nNot affiliated with or endorsed by the BookOrbit project. Free software under AGPL-3.0 with additional terms.",
+      "iconURL": "https://raw.githubusercontent.com/marczykm/bookorb-companion-reader-ios/main/CompanionReader/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "tintColor": "6750A4",
+      "category": "other",
+      "screenshots": [],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "buildVersion": "1",
+          "date": "2026-11-04",
+          "downloadURL": "https://github.com/marczykm/bookorb-companion-reader-ios/releases/download/v0.1.0/BookOrb.ipa",
+          "size": 5628774,
+          "minOSVersion": "17.0",
+          "localizedDescription": "See the release notes on GitHub."
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": []
+}
