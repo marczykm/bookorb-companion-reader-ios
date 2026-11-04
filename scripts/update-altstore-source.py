@@ -10,6 +10,8 @@ Existing versions in apps.json are kept, newest first.
 import datetime, json, os, plistlib, subprocess, sys, tempfile, zipfile
 
 repo = sys.argv[1]
+# Entitlements embedded in the IPA (see CompanionReader/CompanionReader.entitlements).
+ENTITLEMENTS = ["com.apple.security.application-groups"]
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ipa = os.path.join(root, "build", "BookOrb.ipa")
 out = os.path.join(root, "altstore", "apps.json")
@@ -55,7 +57,8 @@ source = {
         "category": "other",
         "screenshots": [],
         "versions": [entry] + versions,
-        "appPermissions": {"entitlements": [], "privacy": {}},
+        # AltStore refuses apps whose IPA has entitlements the source does not declare.
+        "appPermissions": {"entitlements": ENTITLEMENTS, "privacy": {}},
     }],
     "news": [],
 }
