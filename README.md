@@ -1,4 +1,4 @@
-# Companion Reader (iOS)
+# BookOrb: Unofficial Companion App (iOS)
 
 Unofficial iOS companion reader for a self-hosted [BookOrbit](https://github.com/bookorbit/bookorbit) server, ported from the Android app in `../bookorbit-android`. SwiftUI + [Readium Swift toolkit](https://github.com/readium/swift-toolkit). Not affiliated with or endorsed by BookOrbit.
 

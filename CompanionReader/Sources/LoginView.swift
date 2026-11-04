@@ -24,7 +24,7 @@ struct LoginView: View {
                     HStack { Text("Sign in"); if busy { ProgressView() } }
                 }.disabled(busy || server.isEmpty || username.isEmpty || password.isEmpty)
             }
-            .navigationTitle("Companion Reader")
+            .navigationTitle("BookOrb: Unofficial Companion App")
         }
     }
 
