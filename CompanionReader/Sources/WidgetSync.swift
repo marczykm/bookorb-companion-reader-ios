@@ -17,7 +17,25 @@ enum WidgetSync {
 
         var cover: Data?
         if let b = current, b.hasCover, let image = await api.cover(bookId: b.id) { cover = scaled(image, maxHeight: 360).jpegData(compressionQuality: 0.8) }
-        WidgetStore.save(snap, cover: cover)
+
+        // The companion: same pose and caption as on Home.
+        let streak = snap.streak, longest = snap.longestStreak
+        let todayMin = PetCard.todayMinutes(widgets)
+        let pose = Pets.pose(hasBook: current != nil, streak: streak, longest: longest, todayMin: todayMin,
+                             finishedToday: PetCard.finishedToday(widgets), hour: Calendar.current.component(.hour, from: Date()))
+        let (line1, line2) = Pets.lines(pose, streak: streak, longest: longest, todayMin: todayMin)
+        let name = UserDefaults.standard.string(forKey: "pet") ?? "cat"
+        snap.pet = .init(name: name, pose: pose, line1: line1, line2: line2)
+        WidgetStore.save(snap, cover: cover, pet: Pets.sprites(name)[pose]?.pngData())
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Called when a different companion is picked: same pose and caption, new character.
+    static func updatePet(name: String) {
+        guard var snap = WidgetStore.load(), var pet = snap.pet else { return }
+        pet.name = name
+        snap.pet = pet
+        WidgetStore.save(snap, cover: WidgetStore.coverData(), pet: Pets.sprites(name)[pet.pose]?.pngData())
         WidgetCenter.shared.reloadAllTimelines()
     }
 
@@ -26,7 +44,7 @@ enum WidgetSync {
         guard var snap = WidgetStore.load(), snap.book?.id == bookId else { return }
         snap.book?.progress = percent
         snap.updatedAt = Date()
-        WidgetStore.save(snap, cover: WidgetStore.coverData())
+        WidgetStore.save(snap, cover: WidgetStore.coverData(), pet: WidgetStore.petData())
         WidgetCenter.shared.reloadAllTimelines()
     }
 

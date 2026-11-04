@@ -10,7 +10,15 @@ struct WidgetSnapshot: Codable {
         /// Percent read, 0 to 100.
         var progress: Double?
     }
+    /// The selected reading companion and what it is doing right now.
+    struct Pet: Codable {
+        var name: String
+        var pose: String
+        var line1: String
+        var line2: String
+    }
     var book: Book?
+    var pet: Pet?
     var streak = 0
     var longestStreak = 0
     var goalDone = 0
@@ -21,11 +29,12 @@ struct WidgetSnapshot: Codable {
 
 enum WidgetStore {
     static let group = "group.app.bookorb.companion.reader"
-    static let kind = (continueReading: "ContinueReadingWidget", stats: "ReadingStatsWidget")
+    static let kind = (continueReading: "ContinueReadingWidget", stats: "ReadingStatsWidget", pet: "PetWidget")
 
     private static var dir: URL? { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) }
     private static var snapshotURL: URL? { dir?.appendingPathComponent("widget-snapshot.json") }
     private static var coverURL: URL? { dir?.appendingPathComponent("widget-cover.jpg") }
+    private static var petURL: URL? { dir?.appendingPathComponent("widget-pet.png") }
 
     static func load() -> WidgetSnapshot? {
         guard let url = snapshotURL, let data = try? Data(contentsOf: url) else { return nil }
@@ -33,14 +42,18 @@ enum WidgetStore {
         return try? dec.decode(WidgetSnapshot.self, from: data)
     }
 
-    static func save(_ snapshot: WidgetSnapshot, cover: Data?) {
+    static func save(_ snapshot: WidgetSnapshot, cover: Data?, pet: Data?) {
         guard let url = snapshotURL else { return }
         let enc = JSONEncoder(); enc.dateEncodingStrategy = .iso8601
         if let data = try? enc.encode(snapshot) { try? data.write(to: url, options: .atomic) }
         if let coverURL {
             if let cover { try? cover.write(to: coverURL, options: .atomic) } else { try? FileManager.default.removeItem(at: coverURL) }
         }
+        if let petURL {
+            if let pet { try? pet.write(to: petURL, options: .atomic) } else { try? FileManager.default.removeItem(at: petURL) }
+        }
     }
 
     static func coverData() -> Data? { coverURL.flatMap { try? Data(contentsOf: $0) } }
+    static func petData() -> Data? { petURL.flatMap { try? Data(contentsOf: $0) } }
 }

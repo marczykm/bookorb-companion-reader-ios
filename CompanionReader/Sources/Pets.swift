@@ -108,7 +108,7 @@ struct PetCard: View {
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))], spacing: 12) {
                         ForEach(Pets.names, id: \.self) { name in
-                            Button { pet = name; picking = false } label: {
+                            Button { pet = name; picking = false; WidgetSync.updatePet(name: name) } label: {
                                 VStack {
                                     if let img = Pets.sprites(name)["read"] { Image(uiImage: img).interpolation(.none).resizable().frame(width: 72, height: 72) }
                                     Text(name.capitalized).font(.caption)
@@ -127,7 +127,7 @@ struct PetCard: View {
         if let img = Pets.sprites(pet)[pose] { Image(uiImage: img).interpolation(.none).resizable().frame(width: dim, height: dim) }
     }
 
-    private static func todayMinutes(_ data: [String: [String: Any]]) -> Int {
+    static func todayMinutes(_ data: [String: [String: Any]]) -> Int {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; let today = f.string(from: Date())
         let days = data["reading-rhythm"]?["days"] as? [[String: Any]] ?? []
         guard let d = days.last(where: { ($0["date"] as? String)?.hasPrefix(today) == true }),
@@ -136,7 +136,7 @@ struct PetCard: View {
     }
 
     /// A book counts as finished today when the year's completed count has grown since the day began.
-    private static func finishedToday(_ data: [String: [String: Any]]) -> Bool {
+    static func finishedToday(_ data: [String: [String: Any]]) -> Bool {
         guard let completed = (data["reading-goal"]?["completedBooks"] as? NSNumber)?.intValue else { return false }
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; let today = f.string(from: Date())
         let d = UserDefaults.standard

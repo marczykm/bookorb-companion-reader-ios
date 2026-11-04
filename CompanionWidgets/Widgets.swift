@@ -5,14 +5,18 @@ struct SnapshotEntry: TimelineEntry {
     let date: Date
     let snapshot: WidgetSnapshot?
     let cover: UIImage?
+    let pet: UIImage?
 }
 
 struct SnapshotProvider: TimelineProvider {
     private func entry() -> SnapshotEntry {
-        SnapshotEntry(date: Date(), snapshot: WidgetStore.load(), cover: WidgetStore.coverData().flatMap(UIImage.init(data:)))
+        SnapshotEntry(date: Date(), snapshot: WidgetStore.load(), cover: WidgetStore.coverData().flatMap(UIImage.init(data:)),
+                      pet: WidgetStore.petData().flatMap(UIImage.init(data:)))
     }
     func placeholder(in context: Context) -> SnapshotEntry {
-        SnapshotEntry(date: Date(), snapshot: .init(book: .init(id: 0, title: "Book title", authors: "Author", progress: 40), streak: 7, longestStreak: 12, goalDone: 9, goalTotal: 24, goalYear: 2026), cover: nil)
+        SnapshotEntry(date: Date(), snapshot: .init(book: .init(id: 0, title: "Book title", authors: "Author", progress: 40),
+                                                    pet: .init(name: "cat", pose: "read", line1: "Reading with you", line2: "20 min today"),
+                                                    streak: 7, longestStreak: 12, goalDone: 9, goalTotal: 24, goalYear: 2026), cover: nil, pet: nil)
     }
     func getSnapshot(in context: Context, completion: @escaping (SnapshotEntry) -> Void) { completion(entry()) }
     func getTimeline(in context: Context, completion: @escaping (Timeline<SnapshotEntry>) -> Void) {
@@ -82,7 +86,7 @@ struct ReadingStatsView: View {
     @ViewBuilder private var goal: some View {
         let s = entry.snapshot
         VStack(alignment: .leading, spacing: 4) {
-            Text("\(s?.goalYear ?? 0) goal").font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+            Text(verbatim: "\(s?.goalYear ?? 0) goal").font(.caption2.weight(.medium)).foregroundStyle(.secondary)
             if let total = s?.goalTotal, total > 0 {
                 Text("\(s?.goalDone ?? 0) / \(total)").font(.title3.weight(.semibold))
                 ProgressView(value: min(Double(s?.goalDone ?? 0) / Double(total), 1))
@@ -115,10 +119,54 @@ struct ReadingStatsWidget: Widget {
     }
 }
 
+struct PetView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: SnapshotEntry
+
+    var body: some View {
+        let pet = entry.snapshot?.pet
+        Group {
+            if family == .systemSmall {
+                VStack(spacing: 6) {
+                    sprite
+                    Text(pet?.line1 ?? "Open the app").font(.footnote.weight(.semibold)).multilineTextAlignment(.center).lineLimit(2)
+                }
+            } else {
+                HStack(spacing: 16) {
+                    sprite
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(pet?.line1 ?? "Open the app to meet your companion").font(.headline).lineLimit(2)
+                        if let l2 = pet?.line2, !l2.isEmpty { Text(l2).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder private var sprite: some View {
+        if let image = entry.pet { Image(uiImage: image).interpolation(.none).resizable().scaledToFit() }
+        else { Image(systemName: "pawprint").font(.largeTitle).foregroundStyle(.secondary) }
+    }
+}
+
+struct PetWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: WidgetStore.kind.pet, provider: SnapshotProvider()) { entry in
+            PetView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("Reading companion")
+        .description("Your selected companion, reacting to your reading.")
+        .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
 @main
 struct CompanionWidgetsBundle: WidgetBundle {
     var body: some Widget {
         ContinueReadingWidget()
         ReadingStatsWidget()
+        PetWidget()
     }
 }
