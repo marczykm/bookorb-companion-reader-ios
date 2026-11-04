@@ -25,6 +25,7 @@ targets:
     info:
       path: CompanionReader/Info.plist
       properties:
+        ALTAppGroups: [group.app.bookorb.companion.reader]
         CFBundleURLTypes:
           - CFBundleURLName: app.bookorb.companion.reader
             CFBundleURLSchemes: [bookorb]
@@ -70,6 +71,7 @@ targets:
       path: CompanionWidgets/Info.plist
       properties:
         CFBundleDisplayName: BookOrb
+        ALTAppGroups: [group.app.bookorb.companion.reader]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:

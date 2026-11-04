@@ -20,3 +20,17 @@ Android-only features (launcher mode, e-ink display modes, volume-key page turns
 
 ## License
 AGPL-3.0-only with the additional terms in ADDITIONAL_TERMS.md (derived from the Android app). Keep the attribution, and give a redistributed fork its own name.
+
+## Publishing on AltStore
+
+AltStore (Classic) installs apps from a *source*: a JSON file listing the IPA. Users add the source URL in AltStore and install; AltStore re-signs the app with their own Apple ID, so no paid developer account is needed. Free Apple IDs have to refresh the app every 7 days (AltStore does this automatically while AltServer is running).
+
+1. Put this repository on GitHub (public: the AGPL requires the source to be available to users).
+2. Build the IPA: `scripts/build-ipa.sh` → `build/BookOrb.ipa`.
+3. Create a GitHub release (tag `v0.1.0`, matching `MARKETING_VERSION` in `project.yml`) and attach `build/BookOrb.ipa`.
+4. Generate the source: `scripts/update-altstore-source.py OWNER/REPO`, then commit and push `altstore/apps.json`.
+5. Share the source URL it prints (`https://raw.githubusercontent.com/OWNER/REPO/main/altstore/apps.json`). In AltStore: Browse → Sources → "+" → paste the URL.
+
+For each new version: raise `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml`, repeat steps 2–4. Older versions stay listed.
+
+The app reads its App Group from `ALTAppGroups` in `Info.plist` (both the app and the widget extension), because AltStore rewrites the group identifier when it re-signs.

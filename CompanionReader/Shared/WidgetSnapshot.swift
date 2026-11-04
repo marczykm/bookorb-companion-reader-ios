@@ -28,7 +28,11 @@ struct WidgetSnapshot: Codable {
 }
 
 enum WidgetStore {
-    static let group = "group.app.bookorb.companion.reader"
+    static let defaultGroup = "group.app.bookorb.companion.reader"
+    /// AltStore rewrites the App Group when it re-signs the app and lists the real one under ALTAppGroups.
+    static var group: String {
+        (Bundle.main.object(forInfoDictionaryKey: "ALTAppGroups") as? [String])?.first ?? defaultGroup
+    }
     static let kind = (continueReading: "ContinueReadingWidget", stats: "ReadingStatsWidget", pet: "PetWidget")
 
     private static var dir: URL? { FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) }
