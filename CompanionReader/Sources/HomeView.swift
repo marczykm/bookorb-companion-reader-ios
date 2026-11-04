@@ -77,6 +77,7 @@ struct HomeView: View {
         shelves = await api.shelves(shelfDefs)
         widgets = await api.widgets(widgetTypes)
         loaded = true
+        await WidgetSync.publish(api: api, current: shelves["continue"]?.first, widgets: widgets)
     }
 }
 

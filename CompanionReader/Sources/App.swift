@@ -13,6 +13,7 @@ struct CompanionReaderApp: App {
             .environmentObject(app.api)
             .environmentObject(app.session)
             .environmentObject(AppRouter.shared)
+            .onOpenURL { url in if url.scheme == "bookorb", url.host == "continue" { AppRouter.shared.handle("app.bookorb.companion.continue") } }
             .onReceive(app.session.$loggedIn) { if $0 { app.syncNow() } }
             .onChange(of: phase) { _, p in if p == .active { app.syncNow() } }
             .onChange(of: app.api.online) { _, on in if on { app.syncNow() } }

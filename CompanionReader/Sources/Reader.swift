@@ -320,6 +320,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
                 progressDelta: (end != nil && startProgress != nil) ? end! - startProgress! : nil,
                 endProgress: end.map { min(max($0, 0), 100) }))
         }
+        if let p = currentProgress { WidgetSync.updateProgress(bookId: book.id, percent: min(max(p, 0), 100)) }
         app.syncNow()
     }
 

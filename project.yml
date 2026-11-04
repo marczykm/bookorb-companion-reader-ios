@@ -6,6 +6,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
     SWIFT_STRICT_CONCURRENCY: minimal
 packages:
   Readium:
@@ -15,10 +17,17 @@ targets:
   CompanionReader:
     type: application
     platform: iOS
-    sources: [CompanionReader/Sources]
+    sources: [CompanionReader/Sources, CompanionReader/Shared]
+    entitlements:
+      path: CompanionReader/CompanionReader.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.bookorb.companion.reader]
     info:
       path: CompanionReader/Info.plist
       properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: app.bookorb.companion.reader
+            CFBundleURLSchemes: [bookorb]
         UIApplicationShortcutItems:
           - UIApplicationShortcutItemType: app.bookorb.companion.continue
             UIApplicationShortcutItemTitle: Continue reading
@@ -30,6 +39,7 @@ targets:
             UIApplicationShortcutItemTitle: Browse
             UIApplicationShortcutItemIconSymbolName: square.stack
     dependencies:
+      - target: CompanionWidgets
       - package: Readium
         product: ReadiumShared
       - package: Readium
@@ -48,3 +58,24 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads: YES
+  CompanionWidgets:
+    type: app-extension
+    platform: iOS
+    sources: [CompanionWidgets, CompanionReader/Shared]
+    entitlements:
+      path: CompanionWidgets/CompanionWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.bookorb.companion.reader]
+    info:
+      path: CompanionWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: BookOrb
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.bookorb.companion.reader.ios.widgets
+        GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_TEAM: 273ZP5N8FS
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
