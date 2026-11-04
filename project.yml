@@ -28,6 +28,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.bookorb.companion.reader.ios
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        DEVELOPMENT_TEAM: 273ZP5N8FS
+        CODE_SIGN_STYLE: Automatic
         INFOPLIST_KEY_CFBundleDisplayName: "BookOrb: Unofficial Companion App"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
