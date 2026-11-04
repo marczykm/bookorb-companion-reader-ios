@@ -11,6 +11,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Text("Unofficial Companion App").foregroundStyle(.secondary).listRowBackground(Color.clear)
                 Section("Server") {
                     TextField("books.example.com", text: $server)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
@@ -18,15 +19,20 @@ struct LoginView: View {
                 Section("Account") {
                     TextField("Username", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
                     SecureField("Password", text: $password)
+                        .submitLabel(.go)
+                        .onSubmit { if canSignIn { signIn() } }
                 }
                 if let error { Text(error).foregroundStyle(.red) }
                 Button { signIn() } label: {
                     HStack { Text("Sign in"); if busy { ProgressView() } }
-                }.disabled(busy || server.isEmpty || username.isEmpty || password.isEmpty)
+                }.disabled(!canSignIn)
             }
-            .navigationTitle("BookOrb: Unofficial Companion App")
+            .scrollDismissesKeyboard(.interactively)
+            .navigationTitle("BookOrb")
         }
     }
+
+    private var canSignIn: Bool { !(busy || server.isEmpty || username.isEmpty || password.isEmpty) }
 
     private func signIn() {
         busy = true; error = nil

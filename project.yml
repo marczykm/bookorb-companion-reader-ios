@@ -16,6 +16,19 @@ targets:
     type: application
     platform: iOS
     sources: [CompanionReader/Sources]
+    info:
+      path: CompanionReader/Info.plist
+      properties:
+        UIApplicationShortcutItems:
+          - UIApplicationShortcutItemType: app.bookorb.companion.continue
+            UIApplicationShortcutItemTitle: Continue reading
+            UIApplicationShortcutItemIconSymbolName: book
+          - UIApplicationShortcutItemType: app.bookorb.companion.library
+            UIApplicationShortcutItemTitle: Library
+            UIApplicationShortcutItemIconSymbolName: books.vertical
+          - UIApplicationShortcutItemType: app.bookorb.companion.browse
+            UIApplicationShortcutItemTitle: Browse
+            UIApplicationShortcutItemIconSymbolName: square.stack
     dependencies:
       - package: Readium
         product: ReadiumShared

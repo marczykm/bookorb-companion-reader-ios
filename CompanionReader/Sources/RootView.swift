@@ -1,12 +1,28 @@
 import SwiftUI
 
 struct RootView: View {
+    @EnvironmentObject var api: ServerAPI
+    @EnvironmentObject var router: AppRouter
+    @EnvironmentObject var app: AppState
+
     var body: some View {
-        TabView {
-            HomeView().tabItem { Label("Home", systemImage: "house") }
-            LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }
-            BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }
+        TabView(selection: $router.tab) {
+            HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
+            LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
+            BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
         }
+        .fullScreenCover(item: $router.openBook) { book in
+            if let file = book.epubFile() { ReaderScreen(book: book, file: file) }
+        }
+        .task(id: router.pending) { await continueReading() }
+    }
+
+    /// "Continue reading" from the icon menu: opens the book that is in progress.
+    private func continueReading() async {
+        guard router.pending == "app.bookorb.companion.continue" else { return }
+        router.pending = nil
+        let shelves = await api.shelves([("continue", "continue-reading")], limit: 1)
+        if let book = shelves["continue"]?.first(where: { $0.epubFile() != nil }) { router.openBook = book }
     }
 }
 
