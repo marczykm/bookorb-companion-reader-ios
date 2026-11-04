@@ -33,7 +33,7 @@ final class Session: ObservableObject {
 
 enum Keychain {
     private static func query(_ key: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "app.companion.reader", kSecAttrAccount as String: key]
+        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "app.bookorb.companion.reader", kSecAttrAccount as String: key]
     }
     static func get(_ key: String) -> String? {
         var q = query(key)
