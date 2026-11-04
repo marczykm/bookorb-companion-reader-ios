@@ -23,6 +23,8 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
     @Published var title = ""
     @Published var progress: Double = 0
     @Published var minutesLeft = ""
+    /// Where each table-of-contents chapter starts, as a fraction of the book.
+    @Published var chapters: [(title: String, start: Double)] = []
     @Published var jumpOffer: (server: Double, local: Double)?
     @Published var toc: [(depth: Int, link: ReadiumShared.Link)] = []
 
@@ -86,6 +88,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
             }
             let links = try await pub.tableOfContents().get()
             toc = flatten(links, 0)
+            await buildChapters(pub, toc: links)
             await buildReadingModel(pub, toc: links)
         } catch {
             let offline = (error is URLError) && !api.isOnDevice(file.id)
@@ -159,6 +162,33 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
     func delete(_ a: Annotation) { highlights?.delete(a) }
     /// Pick up highlights edited on the web while the app was in the background.
     func refreshHighlights() { if let hl = highlights { Task { await hl.sync() } } }
+
+    /// Where each table-of-contents chapter starts, as a fraction of the book (from the first position in its file).
+    private func buildChapters(_ pub: Publication, toc: [ReadiumShared.Link]) async {
+        let positions = (try? await pub.positions().get()) ?? []
+        var starts: [String: Double] = [:]
+        for p in positions {
+            if let t = p.locations.totalProgression, starts[Self.key(p.href.string)] == nil { starts[Self.key(p.href.string)] = t }
+        }
+        var out: [(title: String, start: Double)] = []
+        var seen = Set<String>()
+        func walk(_ links: [ReadiumShared.Link]) {
+            for l in links {
+                let href = Self.key(l.url().string)
+                let title = (l.title ?? "").trimmingCharacters(in: .whitespaces)
+                if !title.isEmpty, let start = starts[href], seen.insert(href).inserted { out.append((title, start)) }
+                walk(l.children)
+            }
+        }
+        walk(toc)
+        chapters = out.sorted { $0.start < $1.start }
+        if let loc = navigator?.currentLocation { title = chapterTitle(loc) }
+    }
+
+    private func chapterTitle(_ loc: Locator) -> String {
+        let p = loc.locations.totalProgression ?? 0
+        return chapters.last(where: { $0.start <= p + 0.0005 })?.title ?? loc.title ?? ""
+    }
 
     // MARK: Minutes left
 
@@ -254,7 +284,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
         samplePace(loc)
         minutesLeft = minutesLeftText(loc)
         highlights?.chapterMayHaveChanged(href: loc.href.string)
-        title = loc.title ?? ""
+        title = chapterTitle(loc)
         touchActivity()
         guard let p = loc.locations.totalProgression else { return }
         progress = p
@@ -346,7 +376,7 @@ private struct ReaderContent: View {
                 Text(model.title).font(.caption).lineLimit(1).foregroundStyle(fg.opacity(0.6)).padding(.top, 4)
                 Spacer()
                 HStack {
-                    ProgressView(value: model.progress).tint(fg.opacity(0.5))
+                    ProgressMarksView(progress: model.progress, marks: model.chapters.map(\.start), color: fg)
                     if !model.minutesLeft.isEmpty { Text(model.minutesLeft).font(.caption).foregroundStyle(fg.opacity(0.6)) }
                     Text("\(Int(model.progress * 100))%").font(.caption).foregroundStyle(fg.opacity(0.6))
                 }.padding(.horizontal).padding(.bottom, 6)
@@ -424,5 +454,29 @@ private struct ReaderContent: View {
             .navigationTitle("Reading settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showSettings = false } } }
         }
+    }
+}
+
+/// A thin progress bar with a tick at the start of every chapter and a dot for the current position.
+struct ProgressMarksView: View {
+    let progress: Double
+    let marks: [Double]
+    let color: SwiftUI.Color
+
+    var body: some View {
+        Canvas { ctx, size in
+            let left: CGFloat = 4, right = size.width - 4, cy = size.height / 2, track: CGFloat = 3
+            let span = right - left
+            let p = CGFloat(min(max(progress, 0), 1))
+            ctx.fill(Path(roundedRect: CGRect(x: left, y: cy - track / 2, width: span, height: track), cornerRadius: track / 2), with: .color(color.opacity(0.2)))
+            ctx.fill(Path(roundedRect: CGRect(x: left, y: cy - track / 2, width: span * p, height: track), cornerRadius: track / 2), with: .color(color.opacity(0.6)))
+            // Chapter starts; the first one is the left end of the bar, so it needs no tick.
+            for m in marks where m > 0.002 && m < 0.998 {
+                let x = left + span * CGFloat(m)
+                ctx.fill(Path(CGRect(x: x - 0.75, y: cy - 5, width: 1.5, height: 10)), with: .color(color.opacity(0.65)))
+            }
+            ctx.fill(Path(ellipseIn: CGRect(x: left + span * p - 5, y: cy - 5, width: 10, height: 10)), with: .color(color.opacity(0.85)))
+        }
+        .frame(height: 14)
     }
 }
