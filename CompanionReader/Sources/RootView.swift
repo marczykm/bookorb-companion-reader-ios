@@ -11,6 +11,7 @@ struct RootView: View {
             LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
             BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
             HistoryView().tabItem { Label("History", systemImage: "clock.arrow.circlepath") }.tag(3)
+            ActivityView().tabItem { Label("Activity", systemImage: "chart.bar.xaxis") }.tag(4)
         }
         .fullScreenCover(item: $router.openBook) { book in
             if let file = book.epubFile() { ReaderScreen(book: book, file: file) }

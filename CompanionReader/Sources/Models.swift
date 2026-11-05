@@ -217,3 +217,76 @@ struct HistorySummary: Codable {
     }
     enum CodingKeys: String, CodingKey { case years, reads, books, rereads, months, goal }
 }
+
+// MARK: Activity (user-statistics/activity-overview)
+
+struct ActivityDuration: Codable, Hashable {
+    var totalSeconds: Double
+    var readingSeconds: Double
+    var listeningSeconds: Double
+}
+
+struct ActivityDay: Codable, Hashable {
+    var day: String            // yyyy-MM-dd
+    var totalSeconds: Double
+    var readingSeconds: Double
+    var listeningSeconds: Double
+    var sessionsCount: Int
+}
+
+struct ActivityCalendar: Codable {
+    var year: Int
+    var availableYears: [Int]
+    var days: [ActivityDay]
+}
+
+struct ActivityOverview: Codable {
+    struct Snapshot: Codable {
+        var today: ActivityDuration
+        var lastSevenDays: ActivityDuration
+        var previousSevenDays: ActivityDuration
+        var currentStreak: Int
+        var longestStreak: Int
+        var completedBooksYtd: Int
+    }
+    struct Daily: Codable { var days: [ActivityDay] }
+    struct Goal: Codable {
+        struct Point: Codable, Hashable { var month: Int; var actualCumulative: Double; var targetCumulative: Double? }
+        var year: Int
+        var goalBooks: Int?
+        var completedBooks: Int
+        var projectedBooks: Double
+        var status: String?
+        var points: [Point]
+    }
+    struct Rhythm: Codable {
+        struct Weekday: Codable, Hashable { var dayOfWeek: Int; var averageSeconds: Double }
+        struct Hour: Codable, Hashable { var hour: Int; var totalSeconds: Double }
+        var weekdays: [Weekday]
+        var hours: [Hour]
+        var favoriteDayOfWeek: Int?
+        var peakHour: Int?
+    }
+    struct Completion: Codable {
+        struct Month: Codable, Hashable { var year: Int; var month: Int; var count: Int }
+        var months: [Month]
+    }
+    struct Sources: Codable {
+        struct Slice: Codable, Hashable { var bucket: String; var totalSeconds: Double }
+        var totals: ActivityDuration
+        var slices: [Slice]
+    }
+    struct Pace: Codable {
+        var eligibleSessions: Int
+        var medianDurationSeconds: Double?
+        var medianProgressDelta: Double?
+    }
+    var snapshot: Snapshot
+    var dailyActivity: Daily
+    var calendar: ActivityCalendar
+    var goal: Goal
+    var rhythm: Rhythm
+    var completion: Completion
+    var sources: Sources
+    var pace: Pace
+}

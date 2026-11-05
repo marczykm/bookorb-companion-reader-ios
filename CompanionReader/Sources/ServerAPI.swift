@@ -271,6 +271,11 @@ final class ServerAPI: ObservableObject {
         try await get("/reading-history/summary", year.map { ["year": String($0)] } ?? [:], as: HistorySummary.self)
     }
 
+    // MARK: Activity
+
+    func activityOverview() async throws -> ActivityOverview { try await get("/user-statistics/activity-overview", as: ActivityOverview.self) }
+    func activityCalendar(year: Int) async throws -> ActivityCalendar { try await get("/user-statistics/activity-calendar/\(year)", as: ActivityCalendar.self) }
+
     // MARK: Files
 
     func localFile(_ fileId: Int) -> URL { booksDir.appendingPathComponent("\(fileId).epub") }
