@@ -11,6 +11,8 @@ final class ReaderSettings: ObservableObject {
     @Published var margins: Double { didSet { d.set(margins, forKey: "margins") } }
     @Published var justify: Bool { didSet { d.set(justify, forKey: "justify") } }
     @Published var dark: Bool { didSet { d.set(dark, forKey: "dark") } }
+    /// Volume up turns back a page and volume down turns forward.
+    @Published var volumeKeys: Bool { didSet { d.set(volumeKeys, forKey: "volumeKeys") } }
 
     /// Words per minute learned from the user's own reading; 0 until there is enough to go on.
     @Published var learnedPace: Double { didSet { d.set(learnedPace, forKey: "learnedPace") } }
@@ -21,6 +23,7 @@ final class ReaderSettings: ObservableObject {
         margins = d.object(forKey: "margins") as? Double ?? 1.0
         justify = d.bool(forKey: "justify")
         dark = d.bool(forKey: "dark")
+        volumeKeys = d.object(forKey: "volumeKeys") as? Bool ?? true
     }
 
     func reset() { fontSize = 1; margins = 1; justify = false; learnedPace = 0 }

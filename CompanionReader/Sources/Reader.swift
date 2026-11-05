@@ -44,6 +44,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
     private var paceWords = 0.0
     private var paceSeconds = 0.0
     private let minPace = 80.0, maxPace = 600.0
+    private let volumeKeys = VolumeKeys()
 
     // Reading-time tracking: time between page turns counts only while under the idle limit.
     private let sessionId = UUID().uuidString
@@ -112,6 +113,8 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
         navigator = nav
         let hostVC = NavigatorHostController(navigator: nav)
         host = hostVC
+        volumeKeys.onPress = { [weak self] up in if up { self?.goBackward() } else { self?.goForward() } }
+        hostVC.onAppear = { [weak self] in self?.updateVolumeKeys() }
         if book.id != 0 {
             let hl = HighlightSync(pub: pub, app: app, bookId: book.id, fileId: file.id)
             hl.attach(nav)
@@ -128,6 +131,12 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
         links.flatMap { l -> [(depth: Int, link: ReadiumShared.Link)] in
             (!(l.title?.trimmingCharacters(in: .whitespaces) ?? "").isEmpty ?[(depth, l)] : []) + flatten(l.children, depth + 1)
         }
+    }
+
+    /// Starts or stops listening to the volume buttons, depending on the setting.
+    func updateVolumeKeys() {
+        guard let host else { return }
+        if app.settings.volumeKeys { volumeKeys.start(volumeView: host.volumeView) } else { volumeKeys.stop() }
     }
 
     func applySettings() { navigator?.submitPreferences(app.settings.preferences) }
@@ -302,6 +311,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
     /// Called when the reader goes to the background or closes: saves position, progress and reading time.
     func flushState() {
         touchActivity(); lastActivity = nil
+        volumeKeys.stop()
         commitPace()
         if let loc = navigator?.currentLocation, moved {
             if let s = try? loc.jsonString() { UserDefaults.standard.set(s, forKey: locKey) }
@@ -326,6 +336,7 @@ final class ReaderModel: NSObject, ObservableObject, EPUBNavigatorDelegate {
 
     func resume() {
         lastActivity = Date(); refreshHighlights()
+        updateVolumeKeys()
         // The pace may have just been updated, so redo the estimate.
         if let loc = navigator?.currentLocation { minutesLeft = minutesLeftText(loc) }
     }
@@ -395,6 +406,7 @@ private struct ReaderContent: View {
         .onChange(of: settings.margins) { _, _ in model.applySettings() }
         .onChange(of: settings.justify) { _, _ in model.applySettings() }
         .onChange(of: settings.dark) { _, _ in model.applySettings() }
+        .onChange(of: settings.volumeKeys) { _, _ in model.updateVolumeKeys() }
         .confirmationDialog(model.activeAnnotation.map { String($0.text.prefix(80)) } ?? "", isPresented: Binding(get: { model.activeAnnotation != nil }, set: { if !$0 { model.activeAnnotation = nil } }), titleVisibility: .visible) {
             if let a = model.activeAnnotation {
                 ForEach(HighlightSync.colors, id: \.name) { c in Button(c.name.capitalized) { model.recolor(a, c.hex) } }
@@ -446,6 +458,7 @@ private struct ReaderContent: View {
                 Stepper("Font size: \(Int(settings.fontSize * 100))%", value: $settings.fontSize, in: 0.5...2.5, step: 0.1)
                 Stepper("Margins: \(settings.margins == 1 ? "default" : "\(Int(settings.margins * 100))%")", value: $settings.margins, in: 0...4, step: 0.25)
                 Toggle("Justify text", isOn: $settings.justify)
+                Toggle("Volume buttons turn pages", isOn: $settings.volumeKeys)
                 Text(settings.learnedPace > 0
                      ? "Reading speed: about \(Int(settings.learnedPace)) words/min (learned from your reading)"
                      : "Reading speed: \(Int(defaultWordsPerMinute)) words/min (until it learns yours)")

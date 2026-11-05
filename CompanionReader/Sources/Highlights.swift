@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import MediaPlayer
 import ReadiumShared
 import ReadiumNavigator
 
@@ -8,6 +9,9 @@ import ReadiumNavigator
 final class NavigatorHostController: UIViewController {
     let navigator: EPUBNavigatorViewController
     var onHighlight: (() -> Void)?
+    var onAppear: (() -> Void)?
+    /// Kept (nearly invisible) in the view hierarchy: it is how the system volume is set, and it hides the volume indicator.
+    let volumeView = MPVolumeView(frame: CGRect(x: -2000, y: -2000, width: 1, height: 1))
 
     init(navigator: EPUBNavigatorViewController) {
         self.navigator = navigator
@@ -22,6 +26,13 @@ final class NavigatorHostController: UIViewController {
         navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(navigator.view)
         navigator.didMove(toParent: self)
+        volumeView.alpha = 0.01
+        view.addSubview(volumeView)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        onAppear?()
     }
 
     @objc func highlightSelection(_ sender: Any?) { onHighlight?() }
