@@ -65,7 +65,7 @@ struct HomeView: View {
         let size = layout.sizeOf(id)
         let current = shelves["continue"] ?? []
         if id == "hero" {
-            if let book = current.first { ContinueCard(book: book, size: size) { selected = book } }
+            if let book = current.first { ContinueCard(book: book, size: size, onTap: { selected = book }, onContinue: { AppRouter.shared.openBook = book }) }
             else if loaded { Text("Nothing in progress. Pick a book from the library.").foregroundStyle(.secondary).padding(.horizontal) }
         } else if id == "shelf:continue" {
             if current.count > 1 { Shelf(title: "Continue reading", books: Array(current.dropFirst()), size: size) { selected = $0 } }
@@ -86,24 +86,28 @@ struct HomeView: View {
 }
 
 private struct ContinueCard: View {
-    let book: BookCard; let size: String; let onTap: () -> Void
+    let book: BookCard; let size: String; let onTap: () -> Void; let onContinue: () -> Void
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                CoverView(book: book).frame(width: coverWidth(size, 110))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Continue reading").font(.caption.weight(.medium)).foregroundStyle(.tint)
-                    Text(book.title ?? "Untitled").font(.title3.weight(.semibold)).lineLimit(3)
-                    Text(book.authors.joined(separator: ", ")).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                    if let p = book.readingProgress {
-                        ProgressView(value: min(max(p / 100, 0), 1)).padding(.top, 8)
-                        Text("\(Int(p))%").font(.caption2)
-                    }
+        HStack(spacing: 16) {
+            CoverView(book: book).frame(width: coverWidth(size, 110))
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Continue reading").font(.caption.weight(.medium)).foregroundStyle(.tint)
+                Text(book.title ?? "Untitled").font(.title3.weight(.semibold)).lineLimit(3)
+                Text(book.authors.joined(separator: ", ")).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                if let p = book.readingProgress {
+                    ProgressView(value: min(max(p / 100, 0), 1)).padding(.top, 8)
+                    Text("\(Int(p))%").font(.caption2)
                 }
-                Spacer(minLength: 0)
+                // Opens the book straight in the reader, as on Android; tapping the rest of the card opens its page.
+                if book.epubFile() != nil {
+                    Button("Continue", action: onContinue).buttonStyle(.borderedProminent).padding(.top, 8)
+                }
             }
-            .padding(12).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
-        }.buttonStyle(.plain).padding(.horizontal)
+            Spacer(minLength: 0)
+        }
+        .padding(12).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+        .contentShape(RoundedRectangle(cornerRadius: 14)).onTapGesture(perform: onTap)
+        .padding(.horizontal)
     }
 }
 
