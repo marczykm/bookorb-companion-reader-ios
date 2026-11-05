@@ -62,6 +62,8 @@ enum MoreDestination: Hashable { case history, activity, highlights }
 final class AppRouter: ObservableObject {
     static let shared = AppRouter()
     @Published var tab = 0
+    /// The Browse segment: 0 All, 1 Series, 2 Authors, 3 SmartScopes.
+    @Published var browseMode = 0
     /// What the More tab has pushed (Activity, History or Highlights).
     @Published var morePath: [MoreDestination] = []
     @Published var openBook: BookCard?
@@ -70,14 +72,14 @@ final class AppRouter: ObservableObject {
 
     /// Switches to the More tab and opens one of its screens.
     func open(_ destination: MoreDestination) {
-        tab = 3
+        tab = 2
         morePath = [destination]
     }
 
     func handle(_ type: String) {
         switch type {
-        case "app.bookorb.companion.library": pending = nil; tab = 1
-        case "app.bookorb.companion.browse": pending = nil; tab = 2
+        case "app.bookorb.companion.library": pending = nil; browseMode = 0; tab = 1
+        case "app.bookorb.companion.browse": pending = nil; browseMode = 1; tab = 1
         case "app.bookorb.companion.continue": tab = 0; pending = type
         default: break
         }

@@ -11,7 +11,8 @@ struct Opened: Hashable {
 struct BrowseView: View {
     @EnvironmentObject var api: ServerAPI
     @EnvironmentObject var session: Session
-    @State private var mode = 0 // 0 series, 1 authors, 2 SmartScopes
+    @EnvironmentObject var router: AppRouter
+    private var mode: Int { router.browseMode }   // 0 all books, 1 series, 2 authors, 3 SmartScopes
     @State private var query = ""
     @State private var series: [SeriesItem] = []
     @State private var authors: [AuthorItem] = []
@@ -21,25 +22,26 @@ struct BrowseView: View {
     @State private var loading = false
     @State private var error: String?
 
-    private var count: Int { [series.count, authors.count, scopes.count][mode] }
+    private var count: Int { mode == 0 ? 0 : [series.count, authors.count, scopes.count][mode - 1] }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 OfflineBanner()
-                Picker("Browse", selection: $mode) {
-                    Text("Series").tag(0); Text("Authors").tag(1); Text("SmartScopes").tag(2)
+                Picker("Browse", selection: $router.browseMode) {
+                    Text("All").tag(0); Text("Series").tag(1); Text("Authors").tag(2); Text("SmartScopes").tag(3)
                 }.pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 6)
+                if mode == 0 { LibraryContent(query: $query) } else {
                 List {
                     switch mode {
-                    case 0:
+                    case 1:
                         ForEach(series) { s in
                             NavigationLink(value: Opened(kind: .series, id: s.id, title: s.name)) {
                                 BrowseRow(coverBookId: s.coverBookIds.first, title: s.name, round: false,
                                           subtitle: "\(s.readCount)/\(s.bookCount) read" + (s.authors.isEmpty ? "" : " · " + s.authors.joined(separator: ", ")))
                             }.onAppear { more(s.id == series.last?.id) }
                         }
-                    case 1:
+                    case 2:
                         ForEach(authors) { a in
                             NavigationLink(value: Opened(kind: .author, id: a.id, title: a.name)) {
                                 BrowseRow(coverBookId: a.coverBookId, title: a.name, round: true, subtitle: "\(a.bookCount) book\(a.bookCount == 1 ? "" : "s")")
@@ -60,11 +62,13 @@ struct BrowseView: View {
                     else if !loading && count == 0 { Text(error ?? "Nothing found").foregroundStyle(.secondary).padding() }
                 }
                 .refreshable { await load(reset: true) }
+                }
             }
             .navigationTitle("Browse")
-            .searchable(text: $query, prompt: ["Search series", "Search authors", "Search SmartScopes"][mode])
+            .searchable(text: $query, prompt: ["Search books", "Search series", "Search authors", "Search SmartScopes"][mode])
             .navigationDestination(for: Opened.self) { PagedBooksView(opened: $0) }
             .task(id: "\(mode)|\(query)") {
+                guard mode != 0 else { return }   // All loads its own books
                 if !query.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
                 guard !Task.isCancelled else { return }
                 await load(reset: true)
@@ -84,10 +88,11 @@ struct BrowseView: View {
         let target = reset ? 0 : page + 1
         do {
             switch mode {
-            case 0:
+            case 0: return
+            case 1:
                 let r = try await api.series(query: query, page: target)
                 series = reset ? r.items : series + r.items; total = r.total
-            case 1:
+            case 2:
                 let r = try await api.authors(query: query, page: target)
                 authors = reset ? r.items : authors + r.items; total = r.total
             default:

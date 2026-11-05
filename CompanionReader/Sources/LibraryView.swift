@@ -1,13 +1,15 @@
 import SwiftUI
 
-struct LibraryView: View {
+/// Every book of the library, with filters and a grid or list view. Shown under Browse → All.
+struct LibraryContent: View {
+    /// The search text, owned by Browse.
+    @Binding var query: String
     @EnvironmentObject var api: ServerAPI
     @EnvironmentObject var session: Session
     @State private var books: [BookCard] = []
     @State private var libraries: [Library] = []
     @State private var libraryId: Int?
     @State private var status: String?
-    @State private var query = ""
     @State private var grid = true
     @State private var total = 0
     @State private var page = 0
@@ -16,10 +18,9 @@ struct LibraryView: View {
     @State private var selected: BookCard?
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                OfflineBanner()
-                if let error, books.isEmpty { Text(error).foregroundStyle(.secondary).padding() }
+        VStack(spacing: 0) {
+            if let error, books.isEmpty { Text(error).foregroundStyle(.secondary).padding() }
+                if total > 0 { Text("\(total) book\(total == 1 ? "" : "s")").font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.bottom, 2) }
                 ScrollView {
                     if grid {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 12)], spacing: 14) {
@@ -52,8 +53,6 @@ struct LibraryView: View {
                 }
                 .refreshable { await load(reset: true) }
             }
-            .navigationTitle("Library (\(total))")
-            .searchable(text: $query, prompt: "Search books")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
@@ -77,7 +76,6 @@ struct LibraryView: View {
             }
             .task { libraries = await api.libraries() }
             .sheet(item: $selected) { BookDetailView(book: $0) }
-        }
     }
 
     private func more(_ b: BookCard) {

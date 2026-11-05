@@ -8,13 +8,12 @@ struct RootView: View {
     var body: some View {
         TabView(selection: Binding(get: { router.tab }, set: { new in
             // Choosing More, from another tab or while on it, always lands on its list.
-            if new == 3 { router.morePath = [] }
+            if new == 2 { router.morePath = [] }
             router.tab = new
         })) {
             HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
-            LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
-            BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
-            MoreView().tabItem { Label("More", systemImage: "ellipsis.circle") }.tag(3)
+            BrowseView().tabItem { Label("Browse", systemImage: "books.vertical") }.tag(1)
+            MoreView().tabItem { Label("More", systemImage: "ellipsis.circle") }.tag(2)
         }
         .fullScreenCover(item: $router.openBook) { book in
             if let file = book.epubFile() { ReaderScreen(book: book, file: file) }
