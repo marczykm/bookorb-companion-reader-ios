@@ -19,6 +19,15 @@
       "screenshots": [],
       "versions": [
         {
+          "version": "0.1.5",
+          "buildVersion": "6",
+          "date": "2026-11-05",
+          "downloadURL": "https://github.com/marczykm/bookorb-companion-reader-ios/releases/download/v0.1.5/BookOrb.ipa",
+          "size": 6103834,
+          "minOSVersion": "17.0",
+          "localizedDescription": "See the release notes on GitHub."
+        },
+        {
           "version": "0.1.4",
           "buildVersion": "5",
           "date": "2026-11-05",
