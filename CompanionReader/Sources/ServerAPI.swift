@@ -278,6 +278,18 @@ final class ServerAPI: ObservableObject {
 
     func achievements() async throws -> AchievementCatalogue { try await get("/achievements", as: AchievementCatalogue.self) }
 
+    // MARK: Highlights hub
+
+    func hubHighlights(page: Int, search: String?, colors: [String], hasNote: Bool, pageSize: Int = 50) async throws -> HubPage {
+        var q = ["page": String(page), "pageSize": String(pageSize), "sortBy": "createdAt", "sortDir": "desc"]
+        if let t = search?.trimmingCharacters(in: .whitespaces).nilIfEmpty { q["search"] = t }
+        if !colors.isEmpty { q["colors"] = colors.joined(separator: ",") }
+        if hasNote { q["hasNote"] = "true" }
+        return try await get("/annotations", q, as: HubPage.self)
+    }
+
+    func hubOverview() async throws -> HubOverview { try await get("/annotations/overview", as: HubOverview.self) }
+
     // MARK: Files
 
     func localFile(_ fileId: Int) -> URL { booksDir.appendingPathComponent("\(fileId).epub") }

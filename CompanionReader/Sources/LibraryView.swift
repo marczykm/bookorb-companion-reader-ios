@@ -14,6 +14,7 @@ struct LibraryView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var selected: BookCard?
+    @State private var showHighlights = false
 
     var body: some View {
         NavigationStack {
@@ -54,7 +55,11 @@ struct LibraryView: View {
             }
             .navigationTitle("Library (\(total))")
             .searchable(text: $query, prompt: "Search books")
+            .navigationDestination(isPresented: $showHighlights) { HighlightsHubView() }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showHighlights = true } label: { Image(systemName: "highlighter") }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Picker("Library", selection: $libraryId) {

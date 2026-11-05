@@ -324,3 +324,64 @@ struct AchievementCatalogue: Codable {
     var totalEarned: Int
     var totalAvailable: Int
 }
+
+// MARK: Highlights hub (annotations)
+
+struct HubHighlight: Codable, Identifiable, Hashable {
+    var id: Int
+    var bookId: Int
+    var text: String
+    var color: String
+    var style: String
+    var note: String?
+    var chapterTitle: String?
+    var origin: String
+    var highlightedAt: String?
+    var createdAt: String?
+    var bookTitle: String?
+    var author: String?
+    var starredAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, bookId, text, color, style, note, chapterTitle, origin, highlightedAt, createdAt, bookTitle, author, starredAt
+    }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        bookId = try c.decodeIfPresent(Int.self, forKey: .bookId) ?? 0
+        text = try c.decodeIfPresent(String.self, forKey: .text) ?? ""
+        color = try c.decodeIfPresent(String.self, forKey: .color) ?? "yellow"
+        style = try c.decodeIfPresent(String.self, forKey: .style) ?? "highlight"
+        note = try c.decodeIfPresent(String.self, forKey: .note)
+        chapterTitle = try c.decodeIfPresent(String.self, forKey: .chapterTitle)
+        origin = try c.decodeIfPresent(String.self, forKey: .origin) ?? "web"
+        highlightedAt = try c.decodeIfPresent(String.self, forKey: .highlightedAt)
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt)
+        bookTitle = try c.decodeIfPresent(String.self, forKey: .bookTitle)
+        author = try c.decodeIfPresent(String.self, forKey: .author)
+        starredAt = try c.decodeIfPresent(String.self, forKey: .starredAt)
+    }
+}
+
+struct HubPage: Codable {
+    var items: [HubHighlight]
+    var total: Int
+    var page: Int
+    var pageSize: Int
+}
+
+struct HubOverview: Codable {
+    struct ColorCount: Codable, Hashable { var color: String; var count: Int }
+    var total: Int
+    var books: Int
+    var withNotes: Int
+    var colorBreakdown: [ColorCount]
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        total = try c.decodeIfPresent(Int.self, forKey: .total) ?? 0
+        books = try c.decodeIfPresent(Int.self, forKey: .books) ?? 0
+        withNotes = try c.decodeIfPresent(Int.self, forKey: .withNotes) ?? 0
+        colorBreakdown = try c.decodeIfPresent([ColorCount].self, forKey: .colorBreakdown) ?? []
+    }
+    enum CodingKeys: String, CodingKey { case total, books, withNotes, colorBreakdown }
+}
