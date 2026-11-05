@@ -6,7 +6,11 @@ struct RootView: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
-        TabView(selection: $router.tab) {
+        TabView(selection: Binding(get: { router.tab }, set: { new in
+            // Choosing More, from another tab or while on it, always lands on its list.
+            if new == 3 { router.morePath = [] }
+            router.tab = new
+        })) {
             HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
             LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
             BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
