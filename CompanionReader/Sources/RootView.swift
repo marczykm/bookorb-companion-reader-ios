@@ -12,7 +12,7 @@ struct RootView: View {
             router.tab = new
         })) {
             HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
-            BrowseView().tabItem { Label("Browse", systemImage: "books.vertical") }.tag(1)
+            BrowseView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
             MoreView().tabItem { Label("More", systemImage: "ellipsis.circle") }.tag(2)
         }
         .fullScreenCover(item: $router.openBook) { book in
