@@ -72,7 +72,7 @@ struct HomeView: View {
         } else if id.hasPrefix("shelf:") {
             let key = String(id.dropFirst(6))
             if let books = shelves[key], !books.isEmpty { Shelf(title: shelfTitles[key] ?? key, books: books, size: size) { selected = $0 } }
-        } else if id == "clock" || !widgets.isEmpty {
+        } else if !widgets.isEmpty {
             WidgetItemView(id: id, data: widgets, hasBook: !current.isEmpty, size: size).padding(.horizontal)
         }
     }

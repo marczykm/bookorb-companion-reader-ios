@@ -30,7 +30,6 @@ struct WidgetItemView: View {
 
     @ViewBuilder private var card: some View {
         switch id {
-        case "clock": ClockCard(size: size)
         case "pet": PetCard(data: data, hasBook: hasBook, size: size)
         case "reading-streak": if let d = data[id] { StreakCard(d: d, size: size) }
         case "reading-goal": if let d = data[id] { GoalCard(d: d) }
@@ -55,19 +54,6 @@ private struct WidgetCard<Content: View>: View {
         }
         .padding(14).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
-    }
-}
-
-/// The time and date, in the phone's own 12 or 24 hour format. It needs nothing from the server.
-private struct ClockCard: View {
-    let size: String
-    var body: some View {
-        TimelineView(.everyMinute) { ctx in
-            WidgetCard(title: "Clock") {
-                Text(ctx.date, style: .time).font(size == "s" ? .title : size == "l" ? .system(size: 64, weight: .light) : .system(size: 44, weight: .light))
-                Text(ctx.date.formatted(date: size == "s" ? .abbreviated : .complete, time: .omitted)).font(.subheadline).foregroundStyle(.secondary)
-            }
-        }
     }
 }
 

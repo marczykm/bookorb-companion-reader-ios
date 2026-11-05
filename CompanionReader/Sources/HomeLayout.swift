@@ -2,7 +2,7 @@ import Foundation
 
 /// What the Home tab can show, in the default order.
 let homeItems: [(id: String, title: String)] = [
-    ("hero", "Continue reading card"), ("clock", "Clock"), ("pet", "Reading companion"),
+    ("hero", "Continue reading card"), ("pet", "Reading companion"),
     ("reading-streak", "Reading streak"), ("reading-goal", "Yearly goal"), ("reading-rhythm", "Reading rhythm"),
     ("year-projection", "On pace for the year"), ("monthly-challenge", "Monthly challenge"),
     ("highlight-of-the-day", "Highlight of the day"), ("long-wait", "Waiting the longest"),
