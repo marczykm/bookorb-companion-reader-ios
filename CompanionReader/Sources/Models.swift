@@ -129,3 +129,91 @@ struct AuthorItem: Codable, Identifiable, Hashable {
 struct AuthorsPage: Codable { let items: [AuthorItem]; let total: Int }
 
 struct SmartScopeItem: Codable, Identifiable, Hashable { let id: Int; let name: String; var bookCount: Int? }
+
+// MARK: Reading history
+
+/// One finished read: a completed, skimmed or abandoned attempt.
+struct HistoryItem: Codable, Identifiable, Hashable {
+    let id: Int
+    var bookId: Int?
+    var title: String?
+    var authors: [String]
+    var seriesName: String?
+    var seriesIndex: String?
+    var format: String?
+    var endedOn: String?
+    var outcome: String
+    var readNumber: Int?
+    var progressPercent: Double?
+    var seconds: Int
+    var rating: Double?
+    var highlightCount: Int
+    var journalCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, bookId, title, authors, seriesName, seriesIndex, format, endedOn, outcome, readNumber
+        case progressPercent, seconds, rating, highlightCount, journalCount
+    }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        bookId = try c.decodeIfPresent(Int.self, forKey: .bookId)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        authors = try c.decodeIfPresent([String].self, forKey: .authors) ?? []
+        seriesName = try c.decodeIfPresent(String.self, forKey: .seriesName)
+        seriesIndex = try c.decodeIfPresent(String.self, forKey: .seriesIndex)
+        format = try c.decodeIfPresent(String.self, forKey: .format)
+        endedOn = try c.decodeIfPresent(String.self, forKey: .endedOn)
+        outcome = try c.decodeIfPresent(String.self, forKey: .outcome) ?? "completed"
+        readNumber = try c.decodeIfPresent(Int.self, forKey: .readNumber)
+        progressPercent = try c.decodeIfPresent(Double.self, forKey: .progressPercent)
+        seconds = try c.decodeIfPresent(Int.self, forKey: .seconds) ?? 0
+        rating = try c.decodeIfPresent(Double.self, forKey: .rating)
+        highlightCount = try c.decodeIfPresent(Int.self, forKey: .highlightCount) ?? 0
+        journalCount = try c.decodeIfPresent(Int.self, forKey: .journalCount) ?? 0
+    }
+}
+
+/// A month of the list, in order, so section headers can be laid out before the rows load.
+struct HistoryMonth: Codable, Hashable {
+    var month: String   // YYYY-MM or "undated"
+    var reads: Int
+    var seconds: Int
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        month = try c.decode(String.self, forKey: .month)
+        reads = try c.decodeIfPresent(Int.self, forKey: .reads) ?? 0
+        seconds = try c.decodeIfPresent(Int.self, forKey: .seconds) ?? 0
+    }
+    enum CodingKeys: String, CodingKey { case month, reads, seconds }
+}
+
+struct HistoryPage: Codable {
+    var items: [HistoryItem]
+    var offset: Int
+    var total: Int
+    var months: [HistoryMonth]?
+}
+
+struct HistorySummary: Codable {
+    struct YearCount: Codable, Hashable { var year: Int; var reads: Int }
+    struct MonthCount: Codable, Hashable { var month: Int; var reads: Int }
+    struct Goal: Codable, Hashable { var target: Int; var reached: Int; var metOn: String? }
+    var years: [YearCount]
+    var reads: Int
+    var books: Int
+    var rereads: Int
+    var months: [MonthCount]
+    var goal: Goal?
+
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        years = try c.decodeIfPresent([YearCount].self, forKey: .years) ?? []
+        reads = try c.decodeIfPresent(Int.self, forKey: .reads) ?? 0
+        books = try c.decodeIfPresent(Int.self, forKey: .books) ?? 0
+        rereads = try c.decodeIfPresent(Int.self, forKey: .rereads) ?? 0
+        months = try c.decodeIfPresent([MonthCount].self, forKey: .months) ?? []
+        goal = try c.decodeIfPresent(Goal.self, forKey: .goal)
+    }
+    enum CodingKeys: String, CodingKey { case years, reads, books, rereads, months, goal }
+}

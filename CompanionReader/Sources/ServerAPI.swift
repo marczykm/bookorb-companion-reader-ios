@@ -257,6 +257,20 @@ final class ServerAPI: ObservableObject {
     func authorBooks(id: Int, page: Int) async throws -> BooksPage { pending(try await get("/authors/\(id)/books", paging(nil, page), as: BooksPage.self)) }
     func smartScopeBooks(id: Int, page: Int) async throws -> BooksPage { pending(try await get("/smart-scopes/\(id)/books", paging(nil, page), as: BooksPage.self)) }
 
+    // MARK: Reading history
+
+    /// A page of finished reads. `year` nil means all time.
+    func history(year: Int?, search: String?, offset: Int, limit: Int = 50) async throws -> HistoryPage {
+        var q = ["outcomes": "completed,skimmed,abandoned", "sort": "newest", "offset": String(offset), "limit": String(limit)]
+        if let year { q["year"] = String(year) }
+        if let t = search?.trimmingCharacters(in: .whitespaces).nilIfEmpty { q["search"] = t }
+        return try await get("/reading-history", q, as: HistoryPage.self)
+    }
+
+    func historySummary(year: Int?) async throws -> HistorySummary {
+        try await get("/reading-history/summary", year.map { ["year": String($0)] } ?? [:], as: HistorySummary.self)
+    }
+
     // MARK: Files
 
     func localFile(_ fileId: Int) -> URL { booksDir.appendingPathComponent("\(fileId).epub") }

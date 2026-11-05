@@ -10,6 +10,7 @@ struct RootView: View {
             HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
             LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
             BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
+            HistoryView().tabItem { Label("History", systemImage: "clock.arrow.circlepath") }.tag(3)
         }
         .fullScreenCover(item: $router.openBook) { book in
             if let file = book.epubFile() { ReaderScreen(book: book, file: file) }
