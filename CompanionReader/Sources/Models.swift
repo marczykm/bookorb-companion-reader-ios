@@ -385,3 +385,161 @@ struct HubOverview: Codable {
     }
     enum CodingKeys: String, CodingKey { case total, books, withNotes, colorBreakdown }
 }
+
+// MARK: Book page
+
+struct BookDetail: Codable {
+    struct Author: Codable, Hashable { var id: Int; var name: String }
+    struct File: Codable, Hashable {
+        var id: Int
+        var format: String?
+        var role: String?
+        var sizeBytes: Int?
+        var durationSeconds: Double?
+    }
+    struct Collection: Codable, Hashable { var id: Int; var name: String }
+    struct Status: Codable, Hashable { var status: String; var startedAt: String?; var finishedAt: String? }
+
+    var id: Int
+    var title: String?
+    var subtitle: String?
+    var description: String?
+    var isbn10: String?
+    var isbn13: String?
+    var publisher: String?
+    var publishedYear: Int?
+    var language: String?
+    var pageCount: Int?
+    var seriesId: Int?
+    var seriesName: String?
+    var seriesIndex: String?
+    var rating: Double?
+    var personalNote: String?
+    var libraryName: String?
+    var addedAt: String?
+    var authors: [Author]
+    var genres: [String]
+    var files: [File]
+    var collections: [Collection]
+    var readStatus: Status?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, subtitle, description, isbn10, isbn13, publisher, publishedYear, language, pageCount, seriesId, seriesName, seriesIndex
+        case rating, personalNote, libraryName, addedAt, authors, genres, files, collections, readStatus
+    }
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        subtitle = try c.decodeIfPresent(String.self, forKey: .subtitle)
+        description = try c.decodeIfPresent(String.self, forKey: .description)
+        isbn10 = try c.decodeIfPresent(String.self, forKey: .isbn10)
+        isbn13 = try c.decodeIfPresent(String.self, forKey: .isbn13)
+        publisher = try c.decodeIfPresent(String.self, forKey: .publisher)
+        publishedYear = try c.decodeIfPresent(Int.self, forKey: .publishedYear)
+        language = try c.decodeIfPresent(String.self, forKey: .language)
+        pageCount = try c.decodeIfPresent(Int.self, forKey: .pageCount)
+        seriesId = try c.decodeIfPresent(Int.self, forKey: .seriesId)
+        seriesName = try c.decodeIfPresent(String.self, forKey: .seriesName)
+        seriesIndex = try? c.decodeIfPresent(String.self, forKey: .seriesIndex)
+        rating = try c.decodeIfPresent(Double.self, forKey: .rating)
+        personalNote = try c.decodeIfPresent(String.self, forKey: .personalNote)
+        libraryName = try c.decodeIfPresent(String.self, forKey: .libraryName)
+        addedAt = try c.decodeIfPresent(String.self, forKey: .addedAt)
+        authors = try c.decodeIfPresent([Author].self, forKey: .authors) ?? []
+        genres = try c.decodeIfPresent([String].self, forKey: .genres) ?? []
+        files = try c.decodeIfPresent([File].self, forKey: .files) ?? []
+        collections = try c.decodeIfPresent([Collection].self, forKey: .collections) ?? []
+        readStatus = try c.decodeIfPresent(Status.self, forKey: .readStatus)
+    }
+}
+
+/// A book in the "More in series", "More by" and "Similar books" rows.
+struct RelatedBook: Codable, Identifiable, Hashable {
+    var id: Int
+    var title: String?
+    var authors: [String]
+    var seriesIndex: String?
+    var hasCover: Bool
+    init(from d: Decoder) throws {
+        let c = try d.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+        authors = try c.decodeIfPresent([String].self, forKey: .authors) ?? []
+        seriesIndex = try? c.decodeIfPresent(String.self, forKey: .seriesIndex)
+        hasCover = try c.decodeIfPresent(Bool.self, forKey: .hasCover) ?? true
+    }
+    enum CodingKeys: String, CodingKey { case id, title, authors, seriesIndex, hasCover }
+
+    /// Enough of a card to open the book's own page.
+    var card: BookCard {
+        BookCard(id: id, title: title, authors: authors, seriesName: nil, files: [], readingProgress: nil, hasCover: hasCover, rating: nil, readStatus: nil)
+    }
+}
+
+struct JournalEntry: Codable, Identifiable, Hashable {
+    var id: Int
+    var clientId: String
+    var body: String
+    var quote: String?
+    var chapterTitle: String?
+    var positionPercent: Double?
+    var createdAt: String?
+}
+
+struct SessionsPage: Codable {
+    struct Item: Codable, Identifiable, Hashable {
+        var id: Int
+        var startedAt: String
+        var endedAt: String
+        var durationSeconds: Double
+        var progressDelta: Double?
+        var endProgress: Double?
+        var source: String?
+    }
+    struct Stats: Codable {
+        struct Slice: Codable, Hashable { var bucket: String; var totalSeconds: Double; var totalSessions: Int }
+        struct Day: Codable, Hashable { var day: String; var totalMinutes: Double }
+        struct Progress: Codable, Hashable { var day: String; var endProgress: Double }
+        var totalSessions: Int
+        var totalSeconds: Double
+        var firstSessionAt: String?
+        var lastSessionAt: String?
+        var bySource: [Slice]
+        var dailySummary: [Day]
+        var progressSummary: [Progress]
+        var paceProgressDelta: Double
+        var paceDurationSeconds: Double
+        var latestEndProgress: Double?
+
+        init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: CodingKeys.self)
+            totalSessions = try c.decodeIfPresent(Int.self, forKey: .totalSessions) ?? 0
+            totalSeconds = try c.decodeIfPresent(Double.self, forKey: .totalSeconds) ?? 0
+            firstSessionAt = try c.decodeIfPresent(String.self, forKey: .firstSessionAt)
+            lastSessionAt = try c.decodeIfPresent(String.self, forKey: .lastSessionAt)
+            bySource = try c.decodeIfPresent([Slice].self, forKey: .bySource) ?? []
+            dailySummary = try c.decodeIfPresent([Day].self, forKey: .dailySummary) ?? []
+            progressSummary = try c.decodeIfPresent([Progress].self, forKey: .progressSummary) ?? []
+            paceProgressDelta = try c.decodeIfPresent(Double.self, forKey: .paceProgressDelta) ?? 0
+            paceDurationSeconds = try c.decodeIfPresent(Double.self, forKey: .paceDurationSeconds) ?? 0
+            latestEndProgress = try c.decodeIfPresent(Double.self, forKey: .latestEndProgress)
+        }
+        enum CodingKeys: String, CodingKey {
+            case totalSessions, totalSeconds, firstSessionAt, lastSessionAt, bySource, dailySummary, progressSummary
+            case paceProgressDelta, paceDurationSeconds, latestEndProgress
+        }
+    }
+    var items: [Item]
+    var total: Int
+    var page: Int
+    var pageSize: Int
+    var stats: Stats
+}
+
+extension BookCard {
+    init(id: Int, title: String?, authors: [String], seriesName: String?, files: [BookFileRef], readingProgress: Double?, hasCover: Bool, rating: Double?, readStatus: StatusInfo?) {
+        self.id = id; self.title = title; self.authors = authors; self.seriesName = seriesName; self.files = files
+        self.readingProgress = readingProgress; self.hasCover = hasCover; self.rating = rating; self.readStatus = readStatus
+    }
+}

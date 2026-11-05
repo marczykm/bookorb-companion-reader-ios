@@ -290,6 +290,38 @@ final class ServerAPI: ObservableObject {
 
     func hubOverview() async throws -> HubOverview { try await get("/annotations/overview", as: HubOverview.self) }
 
+    // MARK: Book page
+
+    func bookDetail(id: Int) async throws -> BookDetail { try await get("/books/\(id)", as: BookDetail.self) }
+    func recommendations(bookId: Int) async -> [RelatedBook] { (try? await get("/books/\(bookId)/recommendations", as: [RelatedBook].self)) ?? [] }
+    func seriesBooks(bookId: Int) async -> [RelatedBook] { (try? await get("/books/\(bookId)/series-books", as: [RelatedBook].self)) ?? [] }
+    func authorBooks(bookId: Int) async -> [RelatedBook] { (try? await get("/books/\(bookId)/author-books", as: [RelatedBook].self)) ?? [] }
+    func journal(bookId: Int) async -> [JournalEntry] { (try? await get("/books/\(bookId)/journal", as: [JournalEntry].self)) ?? [] }
+
+    /// Every reading session of a book, newest first (the server pages by 100).
+    func sessions(bookId: Int) async throws -> SessionsPage {
+        var first = try await get("/books/\(bookId)/sessions", ["page": "1", "pageSize": "100", "sortBy": "startedAt", "sortDir": "desc"], as: SessionsPage.self)
+        var page = 1
+        while first.items.count < first.total, page < 20 {
+            page += 1
+            let more = try await get("/books/\(bookId)/sessions", ["page": String(page), "pageSize": "100", "sortBy": "startedAt", "sortDir": "desc"], as: SessionsPage.self)
+            if more.items.isEmpty { break }
+            first.items += more.items
+        }
+        return first
+    }
+
+    func addJournalEntry(bookId: Int, body: String, positionPercent: Double?) async throws {
+        var payload: [String: Any] = ["clientId": UUID().uuidString.lowercased(), "body": body]
+        if let positionPercent { payload["positionPercent"] = positionPercent }
+        _ = try await text("POST", url("/books/\(bookId)/journal"), body: try JSONSerialization.data(withJSONObject: payload))
+    }
+
+    func setPersonalNote(bookId: Int, note: String?) async throws {
+        let payload: [String: Any] = ["note": note.map { $0 as Any } ?? NSNull()]
+        _ = try await text("PATCH", url("/books/\(bookId)/personal-note"), body: try JSONSerialization.data(withJSONObject: payload))
+    }
+
     // MARK: Files
 
     func localFile(_ fileId: Int) -> URL { booksDir.appendingPathComponent("\(fileId).epub") }
