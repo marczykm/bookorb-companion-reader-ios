@@ -65,7 +65,9 @@ final class ServerAPI: ObservableObject {
             if authed, let sent { req.setValue("Bearer \(sent)", forHTTPHeaderField: "Authorization") }
             if counted { setSyncing(true) }
             defer { if counted { setSyncing(false) } }
-            let (data, resp) = try await urlSession.data(for: req)
+            // Run in its own task: SwiftUI cancels a pull-to-refresh as soon as the view updates, and that
+            // must not abort the request (it would look like an unreachable server).
+            let (data, resp) = try await Task { try await urlSession.data(for: req) }.value
             let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
             if code == 401, authed, !retried {
                 retried = true
@@ -114,6 +116,8 @@ final class ServerAPI: ObservableObject {
             return value
         } catch let e as AuthError {
             throw e
+        } catch let e as URLError where e.code == .cancelled {
+            throw CancellationError()
         } catch let e as URLError {
             setOnline(false)
             guard let d = try? Data(contentsOf: file) else { throw e }
@@ -215,6 +219,8 @@ final class ServerAPI: ObservableObject {
             try? data?.write(to: file, options: .atomic)
             setOnline(true)
         } catch is AuthError {
+            return [:]
+        } catch let e as URLError where e.code == .cancelled {
             return [:]
         } catch {
             setOnline(false)
