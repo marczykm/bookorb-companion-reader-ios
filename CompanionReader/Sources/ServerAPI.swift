@@ -276,6 +276,8 @@ final class ServerAPI: ObservableObject {
     func activityOverview() async throws -> ActivityOverview { try await get("/user-statistics/activity-overview", as: ActivityOverview.self) }
     func activityCalendar(year: Int) async throws -> ActivityCalendar { try await get("/user-statistics/activity-calendar/\(year)", as: ActivityCalendar.self) }
 
+    func achievements() async throws -> AchievementCatalogue { try await get("/achievements", as: AchievementCatalogue.self) }
+
     // MARK: Files
 
     func localFile(_ fileId: Int) -> URL { booksDir.appendingPathComponent("\(fileId).epub") }

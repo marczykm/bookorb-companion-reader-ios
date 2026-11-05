@@ -290,3 +290,37 @@ struct ActivityOverview: Codable {
     var sources: Sources
     var pace: Pace
 }
+
+// MARK: Achievements
+
+struct AchievementItem: Codable, Identifiable, Hashable {
+    var key: String
+    var groupKey: String?
+    var tier: Int?
+    var category: String
+    var name: String
+    var description: String
+    var iconName: String
+    var rarity: String
+    var threshold: Double?
+    var hidden: Bool
+    var sortOrder: Int?
+    var earned: Bool
+    var awardedAt: String?
+    var currentProgress: Double?
+    var id: String { key }
+}
+
+struct AchievementCategory: Codable, Hashable {
+    var key: String
+    var label: String
+    var earnedCount: Int
+    var totalCount: Int
+    var achievements: [AchievementItem]
+}
+
+struct AchievementCatalogue: Codable {
+    var categories: [AchievementCategory]
+    var totalEarned: Int
+    var totalAvailable: Int
+}

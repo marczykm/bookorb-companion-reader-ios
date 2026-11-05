@@ -32,11 +32,15 @@ struct ActivityView: View {
     @State private var overview: ActivityOverview?
     @State private var error: String?
     @State private var loading = false
+    @State private var section = 0   // 0 = Insights, 1 = Achievements
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 OfflineBanner()
+                Picker("Section", selection: $section) { Text("Insights").tag(0); Text("Achievements").tag(1) }
+                    .pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 8)
+                if section == 1 { AchievementsView() } else {
                 ScrollView {
                     if let o = overview {
                         LazyVStack(spacing: 16) {
@@ -55,6 +59,7 @@ struct ActivityView: View {
                 .overlay {
                     if loading && overview == nil { ProgressView() }
                     else if overview == nil { Text(error ?? "No activity yet").foregroundStyle(.secondary).padding() }
+                }
                 }
             }
             .navigationTitle("Activity")
