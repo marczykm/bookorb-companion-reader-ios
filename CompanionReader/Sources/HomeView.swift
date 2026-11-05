@@ -13,6 +13,7 @@ private func coverWidth(_ size: String, _ medium: CGFloat) -> CGFloat {
 struct HomeView: View {
     @EnvironmentObject var api: ServerAPI
     @EnvironmentObject var session: Session
+    @EnvironmentObject var app: AppState
     @StateObject private var layout = HomeLayout()
     @State private var shelves: [String: [BookCard]] = [:]
     @State private var widgets: WidgetData = [:]
@@ -20,6 +21,7 @@ struct HomeView: View {
     @State private var selected: BookCard?
     @State private var customizing = false
     @State private var showAbout = false
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -46,6 +48,7 @@ struct HomeView: View {
             .navigationTitle("Home")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { showSettings = true } label: { Image(systemName: "gearshape") }
                     Button { customizing = true } label: { Image(systemName: "slider.horizontal.3") }
                     Button { showAbout = true } label: { Image(systemName: "info.circle") }
                 }
@@ -54,6 +57,7 @@ struct HomeView: View {
             .sheet(item: $selected, onDismiss: { Task { await load() } }) { BookDetailView(book: $0) }
             .sheet(isPresented: $customizing) { CustomizeHomeSheet(layout: layout) }
             .sheet(isPresented: $showAbout) { AboutView() }
+            .sheet(isPresented: $showSettings) { SettingsView(settings: app.settings) }
         }
     }
 
@@ -164,6 +168,34 @@ struct AboutView: View {
             }
             .navigationTitle("About").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Close") { dismiss() } } }
+        }
+    }
+}
+
+/// App settings, as on Android: the gear on Home.
+struct SettingsView: View {
+    @EnvironmentObject var api: ServerAPI
+    @ObservedObject var settings: ReaderSettings
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Reading") {
+                    Toggle(isOn: $settings.volumeKeys) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Turn pages with the volume keys")
+                            Text("Volume down goes to the next page and volume up to the previous one while a book is open.")
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Section("Account") {
+                    Button("Sign out", role: .destructive) { Task { await api.logout() } }
+                }
+            }
+            .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
     }
 }

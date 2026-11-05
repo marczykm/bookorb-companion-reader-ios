@@ -458,7 +458,6 @@ private struct ReaderContent: View {
                 Stepper("Font size: \(Int(settings.fontSize * 100))%", value: $settings.fontSize, in: 0.5...2.5, step: 0.1)
                 Stepper("Margins: \(settings.margins == 1 ? "default" : "\(Int(settings.margins * 100))%")", value: $settings.margins, in: 0...4, step: 0.25)
                 Toggle("Justify text", isOn: $settings.justify)
-                Toggle("Volume buttons turn pages", isOn: $settings.volumeKeys)
                 Text(settings.learnedPace > 0
                      ? "Reading speed: about \(Int(settings.learnedPace)) words/min (learned from your reading)"
                      : "Reading speed: \(Int(defaultWordsPerMinute)) words/min (until it learns yours)")
