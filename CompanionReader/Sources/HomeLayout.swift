@@ -6,14 +6,13 @@ let homeItems: [(id: String, title: String)] = [
     ("reading-streak", "Reading streak"), ("reading-goal", "Yearly goal"), ("reading-rhythm", "Reading rhythm"),
     ("year-projection", "On pace for the year"), ("monthly-challenge", "Monthly challenge"),
     ("highlight-of-the-day", "Highlight of the day"), ("long-wait", "Waiting the longest"),
-    ("library-overview", "Library overview"),
     ("shelf:continue", "More in progress"), ("shelf:next", "Up next in series"),
     ("shelf:want", "Want to read"), ("shelf:recent", "Recently added"),
 ]
 
 let widgetTypes = [
     "reading-streak", "reading-goal", "reading-rhythm", "year-projection",
-    "monthly-challenge", "highlight-of-the-day", "library-overview", "long-wait",
+    "monthly-challenge", "highlight-of-the-day", "long-wait",
 ]
 
 let itemSizes = ["s", "m", "l"]

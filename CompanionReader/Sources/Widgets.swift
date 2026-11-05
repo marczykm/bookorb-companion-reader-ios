@@ -38,7 +38,6 @@ struct WidgetItemView: View {
         case "monthly-challenge": if let d = data[id] { ChallengeCard(d: d, size: size) }
         case "highlight-of-the-day": if let d = data[id] { HighlightCard(d: d, size: size) }
         case "long-wait": if let d = data[id] { LongWaitCard(d: d) }
-        case "library-overview": if let d = data[id] { OverviewCard(d: d, size: size) }
         default: EmptyView()
         }
     }
@@ -153,20 +152,6 @@ private struct LongWaitCard: View {
         WidgetCard(title: "Waiting the longest") {
             Text(d.str("title") ?? "Untitled").font(.headline).lineLimit(2)
             Text("On your shelf for \(d.int("waitingDays") ?? 0) days").font(.footnote)
-        }
-    }
-}
-
-private struct OverviewCard: View {
-    let d: [String: Any]; let size: String
-    var body: some View {
-        let stats = [("Books", "totalBooks"), ("Authors", "totalAuthors"), ("Series", "totalSeries"), ("This year", "booksAddedThisYear")]
-        WidgetCard(title: "Library") {
-            HStack {
-                ForEach(Array((size == "s" ? Array(stats.prefix(2)) : stats).enumerated()), id: \.offset) { _, s in
-                    VStack { Text("\(d.int(s.1) ?? 0)").font(.title3.weight(.semibold)); Text(s.0).font(.caption2) }.frame(maxWidth: .infinity)
-                }
-            }
         }
     }
 }
