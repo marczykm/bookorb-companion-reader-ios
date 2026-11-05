@@ -16,34 +16,32 @@ struct HistoryView: View {
     @State private var loaded = false
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                OfflineBanner()
-                List {
-                    Section {
-                        Picker("View", selection: $covers) { Text("List").tag(false); Text("Covers").tag(true) }.pickerStyle(.segmented)
-                        yearChips
-                    }.listRowSeparator(.hidden)
-                    if let summary { Section { NumbersCard(summary: summary, year: year) }.listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16)).listRowBackground(Color.clear).listRowSeparator(.hidden) }
-                    if covers { coverWall } else { monthList }
-                    if items.count < total {
-                        Color.clear.frame(height: 1).onAppear { Task { await load(reset: false) } }
-                    }
+        VStack(spacing: 0) {
+            OfflineBanner()
+            List {
+                Section {
+                    Picker("View", selection: $covers) { Text("List").tag(false); Text("Covers").tag(true) }.pickerStyle(.segmented)
+                    yearChips
+                }.listRowSeparator(.hidden)
+                if let summary { Section { NumbersCard(summary: summary, year: year) }.listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16)).listRowBackground(Color.clear).listRowSeparator(.hidden) }
+                if covers { coverWall } else { monthList }
+                if items.count < total {
+                    Color.clear.frame(height: 1).onAppear { Task { await load(reset: false) } }
                 }
-                .listStyle(.plain)
-                .overlay {
-                    if loading && items.isEmpty { ProgressView() }
-                    else if loaded && items.isEmpty { Text(error ?? "No reads yet").foregroundStyle(.secondary) }
-                }
-                .refreshable { await load(reset: true) }
             }
-            .navigationTitle("History")
-            .searchable(text: $query, prompt: "Search books")
-            .task(id: "\(year.map(String.init) ?? "all")|\(query)") {
-                if !query.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
-                guard !Task.isCancelled else { return }
-                await load(reset: true)
+            .listStyle(.plain)
+            .overlay {
+                if loading && items.isEmpty { ProgressView() }
+                else if loaded && items.isEmpty { Text(error ?? "No reads yet").foregroundStyle(.secondary) }
             }
+            .refreshable { await load(reset: true) }
+        }
+        .navigationTitle("History")
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search books")
+        .task(id: "\(year.map(String.init) ?? "all")|\(query)") {
+            if !query.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
+            guard !Task.isCancelled else { return }
+            await load(reset: true)
         }
     }
 

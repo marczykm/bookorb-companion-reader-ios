@@ -21,7 +21,7 @@ struct WidgetItemView: View {
 
     var body: some View {
         if Self.opensActivity.contains(id), data[id] != nil {
-            card.contentShape(Rectangle()).onTapGesture { AppRouter.shared.tab = 4 }
+            card.contentShape(Rectangle()).onTapGesture { AppRouter.shared.open(.activity) }
                 .accessibilityAddTraits(.isButton).accessibilityHint("Opens Activity")
         } else {
             card

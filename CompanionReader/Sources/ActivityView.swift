@@ -35,36 +35,34 @@ struct ActivityView: View {
     @State private var section = 0   // 0 = Insights, 1 = Achievements
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                OfflineBanner()
-                Picker("Section", selection: $section) { Text("Insights").tag(0); Text("Achievements").tag(1) }
-                    .pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 8)
-                if section == 1 { AchievementsView() } else {
-                ScrollView {
-                    if let o = overview {
-                        LazyVStack(spacing: 16) {
-                            SnapshotCard(o: o)
-                            DailyActivityCard(days: o.dailyActivity.days)
-                            GoalCard(goal: o.goal)
-                            CalendarCard(initial: o.calendar)
-                            RhythmCard(r: o.rhythm)
-                            CompletionCard(months: o.completion.months)
-                            SourcesCard(s: o.sources)
-                            PaceCard(p: o.pace)
-                        }.padding()
-                    }
-                }
-                .refreshable { await load() }
-                .overlay {
-                    if loading && overview == nil { ProgressView() }
-                    else if overview == nil { Text(error ?? "No activity yet").foregroundStyle(.secondary).padding() }
-                }
+        VStack(spacing: 0) {
+            OfflineBanner()
+            Picker("Section", selection: $section) { Text("Insights").tag(0); Text("Achievements").tag(1) }
+                .pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 8)
+            if section == 1 { AchievementsView() } else {
+            ScrollView {
+                if let o = overview {
+                    LazyVStack(spacing: 16) {
+                        SnapshotCard(o: o)
+                        DailyActivityCard(days: o.dailyActivity.days)
+                        GoalCard(goal: o.goal)
+                        CalendarCard(initial: o.calendar)
+                        RhythmCard(r: o.rhythm)
+                        CompletionCard(months: o.completion.months)
+                        SourcesCard(s: o.sources)
+                        PaceCard(p: o.pace)
+                    }.padding()
                 }
             }
-            .navigationTitle("Activity")
-            .task { await load() }
+            .refreshable { await load() }
+            .overlay {
+                if loading && overview == nil { ProgressView() }
+                else if overview == nil { Text(error ?? "No activity yet").foregroundStyle(.secondary).padding() }
+            }
+            }
         }
+        .navigationTitle("Activity")
+        .task { await load() }
     }
 
     private func load() async {

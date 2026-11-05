@@ -10,8 +10,7 @@ struct RootView: View {
             HomeView().tabItem { Label("Home", systemImage: "house") }.tag(0)
             LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }.tag(1)
             BrowseView().tabItem { Label("Browse", systemImage: "square.stack") }.tag(2)
-            HistoryView().tabItem { Label("History", systemImage: "clock.arrow.circlepath") }.tag(3)
-            ActivityView().tabItem { Label("Activity", systemImage: "chart.bar.xaxis") }.tag(4)
+            MoreView().tabItem { Label("More", systemImage: "ellipsis.circle") }.tag(3)
         }
         .fullScreenCover(item: $router.openBook) { book in
             if let file = book.epubFile() { ReaderScreen(book: book, file: file) }
@@ -58,6 +57,37 @@ struct OfflineBanner: View {
         if !api.online {
             Label("Server unreachable – showing saved data", systemImage: "wifi.slash")
                 .font(.footnote).frame(maxWidth: .infinity).padding(6).background(.yellow.opacity(0.25))
+        }
+    }
+}
+
+/// History, Activity and Highlights, which no longer have a tab of their own.
+struct MoreView: View {
+    @EnvironmentObject var router: AppRouter
+
+    var body: some View {
+        NavigationStack(path: $router.morePath) {
+            List {
+                row("History", "Finished reads by month", "clock.arrow.circlepath", .history)
+                row("Activity", "Reading insights and achievements", "chart.bar.xaxis", .activity)
+                row("Highlights", "Everything you have highlighted", "highlighter", .highlights)
+            }
+            .navigationTitle("More")
+            .navigationDestination(for: MoreDestination.self) { destination in
+                switch destination {
+                case .history: HistoryView()
+                case .activity: ActivityView()
+                case .highlights: HighlightsHubView()
+                }
+            }
+        }
+    }
+
+    private func row(_ title: String, _ subtitle: String, _ icon: String, _ destination: MoreDestination) -> some View {
+        NavigationLink(value: destination) {
+            Label {
+                VStack(alignment: .leading, spacing: 2) { Text(title); Text(subtitle).font(.footnote).foregroundStyle(.secondary) }
+            } icon: { Image(systemName: icon) }
         }
     }
 }

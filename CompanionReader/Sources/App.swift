@@ -57,12 +57,22 @@ final class AppState: ObservableObject {
 }
 
 /// Which tab is showing and which book to open, driven by the Home Screen quick actions.
+enum MoreDestination: Hashable { case history, activity, highlights }
+
 final class AppRouter: ObservableObject {
     static let shared = AppRouter()
     @Published var tab = 0
+    /// What the More tab has pushed (Activity, History or Highlights).
+    @Published var morePath: [MoreDestination] = []
     @Published var openBook: BookCard?
     /// An action that arrived before the UI was ready (e.g. a cold start); handled once signed in.
     @Published var pending: String?
+
+    /// Switches to the More tab and opens one of its screens.
+    func open(_ destination: MoreDestination) {
+        tab = 3
+        morePath = [destination]
+    }
 
     func handle(_ type: String) {
         switch type {
