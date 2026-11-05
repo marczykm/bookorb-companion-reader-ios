@@ -16,7 +16,19 @@ struct WidgetItemView: View {
     let hasBook: Bool
     let size: String
 
+    /// Cards that lead to the Activity tab when tapped.
+    private static let opensActivity: Set<String> = ["reading-streak", "reading-goal", "reading-rhythm", "year-projection", "monthly-challenge"]
+
     var body: some View {
+        if Self.opensActivity.contains(id), data[id] != nil {
+            card.contentShape(Rectangle()).onTapGesture { AppRouter.shared.tab = 4 }
+                .accessibilityAddTraits(.isButton).accessibilityHint("Opens Activity")
+        } else {
+            card
+        }
+    }
+
+    @ViewBuilder private var card: some View {
         switch id {
         case "clock": ClockCard(size: size)
         case "pet": PetCard(data: data, hasBook: hasBook, size: size)
